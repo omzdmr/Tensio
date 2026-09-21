@@ -15,6 +15,9 @@ Last updated: 2026-09-22
 - Native platform capabilities go behind adapters
 - Health classifications will be sourced, versioned and separated from UI
 - Repo documentation is the durable project memory
+- Launch localization set: Turkish, English, Spanish, Brazilian Portuguese, French, German, Arabic, Simplified Chinese, Japanese and Korean
+- App language must eventually be selectable independently of device language
+- Arabic requires full RTL support
 
 ## Completed in foundation batch 001
 
@@ -37,20 +40,21 @@ Last updated: 2026-09-22
 - In-memory reading model/store for prototype behavior
 - Dashboard smoke test
 - Android/iOS bootstrap script
-
-Current HEAD before this state update: `484c984ee7c3dd74c42ae8a3ed6daeb9b67bd495`.
+- Localization architecture document
+- Flutter localization generation config
+- Starter ARB catalogs for all 10 launch locales
 
 ## Verification status
 
-GitHub Actions was still running for the latest foundation HEAD when this file was updated. Do not treat the build as verified green until a later run records success.
+Do not treat the build as verified green unless the latest GitHub Actions run confirms it.
 
-The first CI run created before application files existed failed and is not evidence about the completed foundation slice.
+Localization catalogs are now present, but existing screen copy is still largely hard-coded Turkish. The next localization slice must migrate widget strings to generated localization accessors and add in-app language selection.
 
 ## Immediate next work
 
-### P0 — real measurement lifecycle
-1. Confirm/fix CI until latest HEAD is green.
-2. Generate and commit native iOS + Android project folders.
+### P0 — verify + real measurement lifecycle
+1. Inspect latest CI and fix build/analyze issues first if red.
+2. Generate/commit native iOS + Android project folders if not already present.
 3. Introduce repository interface + local persistence.
 4. Replace seed-only data with persisted readings.
 5. Add edit/delete/duplicate flows.
@@ -58,6 +62,14 @@ The first CI run created before application files existed failed and is not evid
 7. Add empty/loading/error states.
 8. Improve accessibility semantics and dynamic-type behavior.
 9. Expand unit/widget tests.
+
+### P0 — localization wiring
+1. Wire generated localizations into MaterialApp.
+2. Migrate current hard-coded UI strings to ARB keys.
+3. Add in-app language selector independent of device language.
+4. Persist selected locale locally.
+5. Verify Arabic RTL and long German/French labels.
+6. Add localization/overflow tests.
 
 ### P1 — measurement quality
 - repeated-reading sessions
@@ -87,4 +99,4 @@ Every development run must:
 
 ## Next recommended batch
 
-**Persistence + real measurement lifecycle**, unless latest CI is red. If CI is red, fix CI/build first and only then continue feature work.
+**Latest CI health check, then persistence + real measurement lifecycle.** Localization wiring is the next parallel foundation slice and should not be forgotten.
