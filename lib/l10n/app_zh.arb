@@ -1,0 +1,17 @@
+{
+  "@@locale": "zh",
+  "appName": "Tensio",
+  "home": "首页",
+  "history": "历史",
+  "insights": "分析",
+  "profile": "个人资料",
+  "newMeasurement": "新测量",
+  "saveMeasurement": "保存测量",
+  "systolic": "收缩压",
+  "diastolic": "舒张压",
+  "pulse": "脉搏",
+  "reports": "报告",
+  "reminders": "提醒",
+  "language": "语言",
+  "settings": "设置"
+}
