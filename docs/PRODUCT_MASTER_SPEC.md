@@ -206,7 +206,20 @@ If ads are added later:
 
 ## Localization
 
-Architecture must support full localization. Initial UI may be Turkish, but product code must not assume Turkish-only forever.
+Tensio launches with ten first-class languages on both iOS and Android:
+
+- Turkish
+- English
+- Spanish
+- Brazilian Portuguese
+- French
+- German
+- Arabic
+- Simplified Chinese
+- Japanese
+- Korean
+
+Language selection is independent of device language, while “use device language” remains available. Arabic requires full RTL behavior. Dates, numbers, units, notifications, reports, accessibility labels and store-facing content are localization scope. See `docs/LOCALIZATION.md` for the implementation contract.
 
 ## Definition of done
 
