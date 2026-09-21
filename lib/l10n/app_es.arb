@@ -1,0 +1,17 @@
+{
+  "@@locale": "es",
+  "appName": "Tensio",
+  "home": "Inicio",
+  "history": "Historial",
+  "insights": "Análisis",
+  "profile": "Perfil",
+  "newMeasurement": "Nueva medición",
+  "saveMeasurement": "Guardar medición",
+  "systolic": "Sistólica",
+  "diastolic": "Diastólica",
+  "pulse": "Pulso",
+  "reports": "Informes",
+  "reminders": "Recordatorios",
+  "language": "Idioma",
+  "settings": "Ajustes"
+}
