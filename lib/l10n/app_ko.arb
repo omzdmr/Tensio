@@ -1,0 +1,17 @@
+{
+  "@@locale": "ko",
+  "appName": "Tensio",
+  "home": "홈",
+  "history": "기록",
+  "insights": "분석",
+  "profile": "프로필",
+  "newMeasurement": "새 측정",
+  "saveMeasurement": "측정 저장",
+  "systolic": "수축기",
+  "diastolic": "이완기",
+  "pulse": "맥박",
+  "reports": "보고서",
+  "reminders": "알림",
+  "language": "언어",
+  "settings": "설정"
+}
