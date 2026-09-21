@@ -4,14 +4,16 @@
 - [x] product master spec
 - [x] design system
 - [x] durable project handoff docs
-- [ ] runnable premium Flutter UI
-- [ ] iOS/Android native scaffolding
+- [x] first premium Flutter UI slice
+- [x] baseline smoke test
+- [x] CI workflow
+- [ ] latest HEAD verified green
+- [ ] iOS/Android native scaffolding committed
 - [ ] local persistence
 - [ ] edit/delete readings
 - [ ] date/time selection
 - [ ] empty states
 - [ ] accessibility pass
-- [ ] baseline tests
 
 ## V0.2 Measurement system
 - [ ] repeated-reading session
