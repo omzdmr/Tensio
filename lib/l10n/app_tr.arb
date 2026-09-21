@@ -1,0 +1,17 @@
+{
+  "@@locale": "tr",
+  "appName": "Tensio",
+  "home": "Ana Sayfa",
+  "history": "Geçmiş",
+  "insights": "Analiz",
+  "profile": "Profil",
+  "newMeasurement": "Yeni ölçüm",
+  "saveMeasurement": "Ölçümü kaydet",
+  "systolic": "Sistolik",
+  "diastolic": "Diyastolik",
+  "pulse": "Nabız",
+  "reports": "Raporlar",
+  "reminders": "Hatırlatıcılar",
+  "language": "Dil",
+  "settings": "Ayarlar"
+}
