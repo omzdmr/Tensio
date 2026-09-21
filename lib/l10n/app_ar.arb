@@ -1,0 +1,17 @@
+{
+  "@@locale": "ar",
+  "appName": "Tensio",
+  "home": "الرئيسية",
+  "history": "السجل",
+  "insights": "التحليلات",
+  "profile": "الملف الشخصي",
+  "newMeasurement": "قياس جديد",
+  "saveMeasurement": "حفظ القياس",
+  "systolic": "الانقباضي",
+  "diastolic": "الانبساطي",
+  "pulse": "النبض",
+  "reports": "التقارير",
+  "reminders": "التذكيرات",
+  "language": "اللغة",
+  "settings": "الإعدادات"
+}
