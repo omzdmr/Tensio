@@ -1,0 +1,17 @@
+{
+  "@@locale": "ja",
+  "appName": "Tensio",
+  "home": "ホーム",
+  "history": "履歴",
+  "insights": "分析",
+  "profile": "プロフィール",
+  "newMeasurement": "新しい測定",
+  "saveMeasurement": "測定を保存",
+  "systolic": "収縮期",
+  "diastolic": "拡張期",
+  "pulse": "脈拍",
+  "reports": "レポート",
+  "reminders": "リマインダー",
+  "language": "言語",
+  "settings": "設定"
+}
