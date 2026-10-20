@@ -41,6 +41,20 @@
         android:paddingTop="8dp"
         android:paddingBottom="18dp" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kalite"
+        android:textColor="#A8D5B5"
+        android:textSize="13sp"
+        android:paddingBottom="4dp" />
+
+    <Spinner
+        android:id="@+id/qualitySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp" />
+
     <Button
         android:id="@+id/startButton"
         android:layout_width="match_parent"
