@@ -8,7 +8,6 @@ import android.widget.TextView
 import android.widget.Spinner
 import android.widget.ArrayAdapter
 import android.view.ViewGroup
-import android.view.Gravity
 import androidx.activity.ComponentActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -38,6 +37,8 @@ class MainActivity : ComponentActivity() {
     private val executor = Executors.newSingleThreadExecutor()
     private var stopping = false
     private var selectedQuality = Quality.FHD
+    private var selectedLiveWidth = 1920
+    private var selectedLiveHeight = 1080
     private val dir by lazy { File(getExternalFilesDir(Environment.DIRECTORY_MOVIES), "catcam").apply { mkdirs() } }
 
     override fun onCreate(state: Bundle?) {
@@ -60,13 +61,20 @@ class MainActivity : ComponentActivity() {
 
     private fun installWebUi() {\n        val dir = File(filesDir, "web").apply { mkdirs() }\n        val target = File(dir, "index.html")\n        if (!target.exists()) assets.open("index.html").use { input -> target.outputStream().use { output -> input.copyTo(output) } }\n    }\n\n    private fun setupQualitySelector() {
         val spinner = Spinner(this)
-        val options = listOf("480p (SD)", "720p (HD)", "1080p (FHD)", "2160p (4K)")
+        val options = listOf("240p (Low)", "360p (Low)", "480p (SD)", "720p (HD)", "1080p (FHD)", "2160p (4K)")
         spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, options)
-        spinner.setSelection(2)
+        spinner.setSelection(4)
         spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                selectedQuality = when (position) { 0 -> Quality.SD; 1 -> Quality.HD; 2 -> Quality.FHD; else -> Quality.UHD }
+                when (position) {
+                    0 -> { selectedQuality = Quality.SD; selectedLiveWidth = 426; selectedLiveHeight = 240 }
+                    1 -> { selectedQuality = Quality.SD; selectedLiveWidth = 640; selectedLiveHeight = 360 }
+                    2 -> { selectedQuality = Quality.SD; selectedLiveWidth = 854; selectedLiveHeight = 480 }
+                    3 -> { selectedQuality = Quality.HD; selectedLiveWidth = 1280; selectedLiveHeight = 720 }
+                    4 -> { selectedQuality = Quality.FHD; selectedLiveWidth = 1920; selectedLiveHeight = 1080 }
+                    else -> { selectedQuality = Quality.UHD; selectedLiveWidth = 3840; selectedLiveHeight = 2160 }
+                }
             }
         }
         val root = findViewById<ViewGroup>(android.R.id.content)
@@ -85,6 +93,7 @@ class MainActivity : ComponentActivity() {
                 capture = VideoCapture.withOutput(recorder)
 
                 val analysis = ImageAnalysis.Builder()
+                    .setTargetResolution(android.util.Size(selectedLiveWidth, selectedLiveHeight))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                     .build()
