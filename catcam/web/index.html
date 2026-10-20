@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CatCam</title><style>
+body{margin:0;background:#111;color:#eee;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+main{max-width:1100px;margin:auto;padding:16px}img{width:100%;border-radius:18px;background:#000;display:block}
+h1{font-size:24px}p{color:#aaa}
+</style></head><body><main><h1>CatCam</h1><p>Live camera</p><img id="camera" alt="CatCam live stream">
+<script>const u=new URLSearchParams(location.search).get('camera');if(u)document.querySelector('#camera').src=u;</script>
+</main></body></html>
