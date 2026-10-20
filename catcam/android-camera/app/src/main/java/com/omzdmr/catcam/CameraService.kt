@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Environment
+import android.os.StatFs
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Quality
@@ -145,11 +146,26 @@ class CameraService : LifecycleService() {
     }
 
     private fun cleanup() {
-        val cutoff = System.currentTimeMillis() - 48 * 60 * 60 * 1000L
-        recordingDir.listFiles { f ->
+        val files = recordingDir.listFiles { f ->
             f.extension.lowercase(Locale.US) == "mp4"
-        }?.forEach {
-            if (it.lastModified() < cutoff) it.delete()
+        }?.sortedBy { it.lastModified() } ?: return
+
+        val cutoff = System.currentTimeMillis() - 48 * 60 * 60 * 1000L
+        files.filter { it.lastModified() < cutoff }.forEach { it.delete() }
+
+        // Safety valve: high-quality recording must never be allowed to fill the phone.
+        val stat = StatFs(recordingDir.path)
+        val totalBytes = stat.totalBytes
+        val minFreeBytes = maxOf(4L * 1024 * 1024 * 1024, totalBytes / 10)
+        var freeBytes = stat.availableBytes
+        if (freeBytes < minFreeBytes) {
+            recordingDir.listFiles { f ->
+                f.extension.lowercase(Locale.US) == "mp4"
+            }?.sortedBy { it.lastModified() }?.forEach { file ->
+                if (freeBytes >= minFreeBytes) return@forEach
+                val size = file.length()
+                if (file.delete()) freeBytes += size
+            }
         }
     }
 
