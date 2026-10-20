@@ -90,7 +90,7 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
     private fun status(s: Socket) {
         val fs = recordingDir.listFiles { f -> f.extension.lowercase() == "mp4" } ?: emptyArray()
         val bytes = fs.sumOf { it.length() }
-        json(s, "{"online":true,"recordings":" + fs.size + ","storageBytes":" + bytes + ","retentionHours":48}")
+        json(s, """{"online":true,"recordings":" + fs.size + ","storageBytes":" + bytes + ","retentionHours":48}""")
     }
 
     private fun recordings(s: Socket) {
@@ -99,9 +99,15 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
             append("[")
             fs.forEachIndexed { i, f ->
                 if (i > 0) append(",")
-                append("{"name":"").append(f.name).append("","size":").append(f.length())
-                    .append(","modified":").append(f.lastModified())
-                    .append(","url":"/recordings/").append(f.name).append(""}")
+                append("""{"name":"""")
+                append(escapeJson(f.name))
+                append("""","size":""")
+                append(f.length())
+                append(""","modified":""")
+                append(f.lastModified())
+                append(""","url":"/recordings/""")
+                append(escapeJson(f.name))
+                append(""""}""")
             }
             append("]")
         }
@@ -116,6 +122,11 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
         }
 
         val length = file.length()
+        if (length <= 0L) {
+            text(s, "416 Range Not Satisfiable", "Empty recording")
+            return
+        }
+
         var start = 0L
         var end = length - 1
 
@@ -157,6 +168,9 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
         }
         o.flush()
     }
+
+    private fun escapeJson(value: String): String =
+        value.replace("\\", "\\\\").replace(""", "\"")
 
     private fun json(s: Socket, body: String) {
         val b = body.toByteArray(StandardCharsets.UTF_8)
