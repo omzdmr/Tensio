@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
 import android.os.StatFs
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -39,6 +40,9 @@ class CameraService : LifecycleService() {
     private var capture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
     private val executor = Executors.newSingleThreadExecutor()
+    private val segmentHandler = Handler()
+    private var segmentStopRunnable: Runnable? = null
+    private var segmentGeneration = 0L
     private var stopping = false
 
     private val recordingDir by lazy {
@@ -109,8 +113,11 @@ class CameraService : LifecycleService() {
                     .build()
 
                 analysis.setAnalyzer(executor) { image ->
-                    try { server?.updateFrame(YuvJpegAnalyzer.encode(image)) }
-                    finally { image.close() }
+                    try {
+                        server?.updateFrame(YuvJpegAnalyzer.encode(image))
+                    } finally {
+                        image.close()
+                    }
                 }
 
                 provider.unbindAll()
@@ -125,26 +132,39 @@ class CameraService : LifecycleService() {
     private fun startSegment() {
         if (stopping) return
         val c = capture ?: return
+
+        segmentStopRunnable?.let(segmentHandler::removeCallbacks)
+        segmentStopRunnable = null
         cleanup()
+
+        val generation = ++segmentGeneration
         val file = File(
             recordingDir,
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + ".mp4"
         )
         server?.setActiveRecording(file)
+
         recording = c.output
             .prepareRecording(this, FileOutputOptions.Builder(file).build())
             .start(ContextCompat.getMainExecutor(this)) { event ->
-                if (event is VideoRecordEvent.Finalize) {
-                    recording = null
-                    server?.setActiveRecording(null)
-                    if (!stopping && !event.hasError()) startSegment()
+                if (event !is VideoRecordEvent.Finalize || generation != segmentGeneration) return@start
+
+                recording = null
+                server?.setActiveRecording(null)
+                segmentStopRunnable = null
+
+                if (!stopping && !event.hasError()) {
+                    startSegment()
                 }
             }
 
-        android.os.Handler(mainLooper).postDelayed(
-            { if (!stopping) recording?.stop() },
-            5 * 60 * 1000L
-        )
+        val stopRunnable = Runnable {
+            if (!stopping && generation == segmentGeneration) {
+                recording?.stop()
+            }
+        }
+        segmentStopRunnable = stopRunnable
+        segmentHandler.postDelayed(stopRunnable, 5 * 60 * 1000L)
     }
 
     private fun cleanup() {
@@ -173,6 +193,9 @@ class CameraService : LifecycleService() {
 
     private fun stopEverything() {
         stopping = true
+        segmentGeneration++
+        segmentStopRunnable?.let(segmentHandler::removeCallbacks)
+        segmentStopRunnable = null
         recording?.stop()
         recording = null
         server?.setActiveRecording(null)
@@ -206,7 +229,11 @@ class CameraService : LifecycleService() {
     override fun onDestroy() {
         if (!stopping) {
             stopping = true
+            segmentGeneration++
+            segmentStopRunnable?.let(segmentHandler::removeCallbacks)
+            segmentStopRunnable = null
             recording?.stop()
+            recording = null
             server?.setActiveRecording(null)
             server?.stop()
         }
