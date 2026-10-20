@@ -63,16 +63,33 @@ class CameraService : LifecycleService() {
             try {
                 val provider = future.get()
                 val recorder = Recorder.Builder()
+                    val qualityIndex = getSharedPreferences("catcam", MODE_PRIVATE).getInt("quality", 4)
+                val selectedQuality = when (qualityIndex) {
+                    0, 1, 2 -> Quality.SD
+                    3 -> Quality.HD
+                    5 -> Quality.UHD
+                    else -> Quality.FHD
+                }
+                val liveSize = when (qualityIndex) {
+                    0 -> android.util.Size(426, 240)
+                    1 -> android.util.Size(640, 360)
+                    2 -> android.util.Size(854, 480)
+                    3 -> android.util.Size(1280, 720)
+                    5 -> android.util.Size(3840, 2160)
+                    else -> android.util.Size(1920, 1080)
+                }
+
+                val recorder = Recorder.Builder()
                     .setQualitySelector(
                         QualitySelector.from(
-                            Quality.FHD,
-                            FallbackStrategy.higherQualityOrLowerThan(Quality.FHD)
+                            selectedQuality,
+                            FallbackStrategy.higherQualityOrLowerThan(selectedQuality)
                         )
                     ).build()
                 capture = VideoCapture.withOutput(recorder)
 
                 val analysis = ImageAnalysis.Builder()
-                    .setTargetResolution(android.util.Size(1280, 720))
+                    .setTargetResolution(liveSize)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
                     .build()
