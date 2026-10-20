@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     paths: ["catcam/**",".github/workflows/catcam-debug.yml"]
+  pull_request:
+    paths: ["catcam/**",".github/workflows/catcam-debug.yml"]
 jobs:
   android:
     runs-on: ubuntu-latest
