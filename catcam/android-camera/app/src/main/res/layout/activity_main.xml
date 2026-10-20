@@ -1,7 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#090B0A" android:padding="16dp">
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CatCam" android:textColor="#F3F5F3" android:textSize="24sp" android:textStyle="bold" android:paddingBottom="12dp"/>
-<androidx.camera.view.PreviewView android:id="@+id/previewView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
-<TextView android:id="@+id/statusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#A8D5B5" android:text="Starting camera…" android:textSize="15sp" android:paddingTop="12dp"/>
-<TextView android:id="@+id/urlText" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#929A95" android:textIsSelectable="true" android:textSize="13sp" android:paddingTop="6dp"/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#090B0A"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CatCam"
+        android:textColor="#F3F5F3"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Telefonu 7/24 evcil hayvan kamerasına çevir"
+        android:textColor="#A8D5B5"
+        android:textSize="15sp"
+        android:paddingTop="4dp"
+        android:paddingBottom="18dp" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hazırlanıyor…"
+        android:textColor="#F3F5F3"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/urlText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#929A95"
+        android:textIsSelectable="true"
+        android:textSize="13sp"
+        android:paddingTop="8dp"
+        android:paddingBottom="18dp" />
+
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kamerayı Başlat"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/batteryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pil optimizasyonunu kapat"
+        android:textAllCaps="false" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bu ayarı aç. Redmi'nin CatCam'i uykuya alıp bağlantıyı kesmesini engellemeye yardımcı olur."
+        android:textColor="#929A95"
+        android:textSize="12sp"
+        android:paddingTop="5dp"
+        android:paddingBottom="12dp" />
+
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kamerayı Durdur"
+        android:textAllCaps="false" />
+
 </LinearLayout>
