@@ -45,7 +45,9 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
             }
             val path = URLDecoder.decode(parts[1].substringBefore("?"), "UTF-8")
             when {
-                path == "/" -> asset(sock)
+                path == "/" || path == "/index.html" -> asset(sock, "index.html", "text/html; charset=utf-8")
+                path == "/manifest.webmanifest" -> asset(sock, "manifest.webmanifest", "application/manifest+json; charset=utf-8")
+                path == "/sw.js" -> asset(sock, "sw.js", "application/javascript; charset=utf-8")
                 path == "/live.mjpeg" -> mjpeg(sock)
                 path == "/snapshot.jpg" -> snapshot(sock)
                 path == "/api/status" -> status(sock)
@@ -56,13 +58,14 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
         }
     }
 
-    private fun asset(s: Socket) {
-        val file = File(filesDir, "web/index.html")
-        if (!file.isFile) { text(s, "404 Not Found", "Web UI missing"); return }
+    private fun asset(s: Socket, name: String, contentType: String) {
+        val file = File(filesDir, "web/$name")
+        if (!file.isFile) { text(s, "404 Not Found", "Web asset missing"); return }
         val b = file.readBytes()
         val o = s.getOutputStream()
-        o.write(("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + b.size + "\r\nConnection: close\r\n\r\n").toByteArray())
-        o.write(b); o.flush()
+        o.write(("HTTP/1.1 200 OK\\r\\nContent-Type: " + contentType + "\\r\\nContent-Length: " + b.size + "\\r\\nCache-Control: no-cache\\r\\nConnection: close\\r\\n\\r\\n").toByteArray())
+        o.write(b)
+        o.flush()
     }
 
     private fun mjpeg(s: Socket) {
