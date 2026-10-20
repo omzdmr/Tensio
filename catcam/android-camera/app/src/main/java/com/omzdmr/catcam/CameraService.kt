@@ -46,6 +46,7 @@ class CameraService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        copyWebAssets()
         createChannel()
         val type = if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA else 0
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(), type)
@@ -54,6 +55,19 @@ class CameraService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (server == null) startCamera()
         return START_STICKY
+    }
+
+    private fun copyWebAssets() {
+        val target = File(filesDir, "web").apply { mkdirs() }
+        listOf("index.html", "manifest.webmanifest", "sw.js").forEach { name ->
+            try {
+                assets.open(name).use { input ->
+                    File(target, name).outputStream().use { output -> input.copyTo(output) }
+                }
+            } catch (_: Exception) {
+                // Keep the last copied version if an asset is unavailable.
+            }
+        }
     }
 
     private fun startCamera() {
