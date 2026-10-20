@@ -130,11 +130,13 @@ class CameraService : LifecycleService() {
             recordingDir,
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + ".mp4"
         )
+        server?.setActiveRecording(file)
         recording = c.output
             .prepareRecording(this, FileOutputOptions.Builder(file).build())
             .start(ContextCompat.getMainExecutor(this)) { event ->
                 if (event is VideoRecordEvent.Finalize) {
                     recording = null
+                    server?.setActiveRecording(null)
                     if (!stopping && !event.hasError()) startSegment()
                 }
             }
@@ -173,6 +175,7 @@ class CameraService : LifecycleService() {
         stopping = true
         recording?.stop()
         recording = null
+        server?.setActiveRecording(null)
         server?.stop()
         server = null
         executor.shutdown()
@@ -204,6 +207,7 @@ class CameraService : LifecycleService() {
         if (!stopping) {
             stopping = true
             recording?.stop()
+            server?.setActiveRecording(null)
             server?.stop()
         }
         executor.shutdown()
