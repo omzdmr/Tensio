@@ -63,7 +63,7 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
         if (!file.isFile) { text(s, "404 Not Found", "Web asset missing"); return }
         val b = file.readBytes()
         val o = s.getOutputStream()
-        o.write(("HTTP/1.1 200 OK\\r\\nContent-Type: " + contentType + "\\r\\nContent-Length: " + b.size + "\\r\\nCache-Control: no-cache\\r\\nConnection: close\\r\\n\\r\\n").toByteArray())
+        o.write(("HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " + b.size + "\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\n").toByteArray())
         o.write(b)
         o.flush()
     }
