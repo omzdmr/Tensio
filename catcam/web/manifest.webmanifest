@@ -1,0 +1,9 @@
+{
+  "name": "CatCam",
+  "short_name": "CatCam",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090b0a",
+  "theme_color": "#0b0d0c",
+  "icons": []
+}
