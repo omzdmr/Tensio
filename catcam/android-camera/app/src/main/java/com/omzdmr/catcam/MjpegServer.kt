@@ -15,6 +15,7 @@ import kotlin.concurrent.thread
 class MjpegServer(private val port: Int, private val filesDir: File, private val recordingDir: File) {
     @Volatile private var running = false
     @Volatile private var latest: ByteArray? = null
+    @Volatile private var activeRecordingName: String? = null
     private var socket: ServerSocket? = null
 
     fun start() {
@@ -32,6 +33,8 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
     }
 
     fun updateFrame(frame: ByteArray) { latest = frame }
+
+    fun setActiveRecording(file: File?) { activeRecordingName = file?.name }
 
     private fun serve(s: Socket) {
         s.use { sock ->
@@ -102,7 +105,10 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
     }
 
     private fun recordings(s: Socket) {
-        val fs = recordingDir.listFiles { f -> f.extension.lowercase() == "mp4" }?.sortedByDescending { it.lastModified() } ?: emptyList()
+        val active = activeRecordingName
+        val fs = recordingDir.listFiles { f ->
+            f.extension.lowercase() == "mp4" && f.name != active
+        }?.sortedByDescending { recordingStartMillis(it) } ?: emptyList()
         val body = buildString {
             append("[")
             fs.forEachIndexed { i, f ->
@@ -113,6 +119,9 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
                 append(f.length())
                 append(",\"modified\":")
                 append(f.lastModified())
+                append(",\"start\":")
+                append(recordingStartMillis(f))
+                append(",\"durationMs\":300000")
                 append(",\"url\":\"/recordings/")
                 append(escapeJson(f.name))
                 append("\"}")
@@ -142,8 +151,16 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
             try {
                 val spec = range.removePrefix("bytes=").substringBefore(",")
                 val pieces = spec.split("-", limit = 2)
-                start = pieces[0].toLong()
-                end = if (pieces.size > 1 && pieces[1].isNotBlank()) pieces[1].toLong() else length - 1
+                if (pieces.size != 2) throw IllegalArgumentException()
+                if (pieces[0].isBlank()) {
+                    val suffixLength = pieces[1].toLong()
+                    if (suffixLength <= 0) throw IllegalArgumentException()
+                    start = maxOf(0L, length - suffixLength)
+                    end = length - 1
+                } else {
+                    start = pieces[0].toLong()
+                    end = if (pieces[1].isNotBlank()) pieces[1].toLong() else length - 1
+                }
                 if (start < 0 || start >= length || end < start) throw IllegalArgumentException()
                 end = minOf(end, length - 1)
             } catch (_: Exception) {
