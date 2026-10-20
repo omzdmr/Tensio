@@ -6,7 +6,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +31,20 @@ class MainActivity : ComponentActivity() {
         statusText = findViewById(R.id.statusText)
         urlText = findViewById(R.id.urlText)
 
+        val spinner = findViewById<Spinner>(R.id.qualitySpinner)
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            listOf("240p canlı / SD kayıt", "360p canlı / SD kayıt", "480p canlı / SD kayıt", "720p HD", "1080p FHD", "2160p 4K")
+        )
+        spinner.setSelection(getSharedPreferences("catcam", MODE_PRIVATE).getInt("quality", 4))
+        spinner.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                getSharedPreferences("catcam", MODE_PRIVATE).edit().putInt("quality", position).apply()
+            }
+        })
+
         findViewById<Button>(R.id.startButton).setOnClickListener { ensureCameraPermissionAndStart() }
         findViewById<Button>(R.id.batteryButton).setOnClickListener { openBatterySettings() }
         findViewById<Button>(R.id.stopButton).setOnClickListener { stopCameraService() }
@@ -37,8 +53,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun ensureCameraPermissionAndStart() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
-            PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCameraService()
         } else {
             cameraPermission.launch(Manifest.permission.CAMERA)
@@ -59,12 +74,7 @@ class MainActivity : ComponentActivity() {
 
     private fun openBatterySettings() {
         try {
-            startActivity(
-                Intent(
-                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:$packageName")
-                )
-            )
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
         } catch (_: Exception) {
             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
