@@ -64,7 +64,9 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(this, CameraService::class.java).setAction(CameraService.ACTION_START)
         ContextCompat.startForegroundService(this, intent)
         statusText.text = "Kamera çalışıyor. Ekranı kapatabilirsin."
-        urlText.text = "iPhone: http://${NetworkUtils.localIp()}:8080/"
+        val lan = "http://${NetworkUtils.localIp()}:8080/"
+        val tail = NetworkUtils.tailscaleIp()
+        urlText.text = if (tail != null) "Aynı Wi-Fi: $lan\nDışarıdan (Tailscale): http://$tail:8080/" else "Aynı Wi-Fi: $lan\nDışarıdan: Tailscale’i Redmi’ye ve iPhone’a kur. Sonra Tailscale IP burada görünecek."
     }
 
     private fun stopCameraService() {
