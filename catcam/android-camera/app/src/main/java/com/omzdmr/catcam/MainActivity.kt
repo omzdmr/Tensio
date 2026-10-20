@@ -5,6 +5,10 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import android.widget.TextView
+import android.widget.Spinner
+import android.widget.ArrayAdapter
+import android.view.ViewGroup
+import android.view.Gravity
 import androidx.activity.ComponentActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -33,6 +37,7 @@ class MainActivity : ComponentActivity() {
     private var recording: Recording? = null
     private val executor = Executors.newSingleThreadExecutor()
     private var stopping = false
+    private var selectedQuality = Quality.FHD
     private val dir by lazy { File(getExternalFilesDir(Environment.DIRECTORY_MOVIES), "catcam").apply { mkdirs() } }
 
     override fun onCreate(state: Bundle?) {
@@ -40,6 +45,7 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
         statusText = findViewById(R.id.statusText)
         urlText = findViewById(R.id.urlText)
+        setupQualitySelector()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 10)
@@ -52,14 +58,29 @@ class MainActivity : ComponentActivity() {
         else statusText.text = "Camera permission is required."
     }
 
-    private fun installWebUi() {\n        val dir = File(filesDir, "web").apply { mkdirs() }\n        val target = File(dir, "index.html")\n        if (!target.exists()) assets.open("index.html").use { input -> target.outputStream().use { output -> input.copyTo(output) } }\n    }\n\n    private fun startCamera() {
+    private fun installWebUi() {\n        val dir = File(filesDir, "web").apply { mkdirs() }\n        val target = File(dir, "index.html")\n        if (!target.exists()) assets.open("index.html").use { input -> target.outputStream().use { output -> input.copyTo(output) } }\n    }\n\n    private fun setupQualitySelector() {
+        val spinner = Spinner(this)
+        val options = listOf("480p (SD)", "720p (HD)", "1080p (FHD)", "2160p (4K)")
+        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, options)
+        spinner.setSelection(2)
+        spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                selectedQuality = when (position) { 0 -> Quality.SD; 1 -> Quality.HD; 2 -> Quality.FHD; else -> Quality.UHD }
+            }
+        }
+        val root = findViewById<ViewGroup>(android.R.id.content)
+        root.addView(spinner, ViewGroup.LayoutParams(-1, -2))
+    }
+
+    private fun startCamera() {
         installWebUi()\n        server = MjpegServer(8080, filesDir, dir).also { it.start() }
         val future = ProcessCameraProvider.getInstance(this)
         future.addListener({
             try {
                 val provider = future.get()
                 val recorder = Recorder.Builder()
-                    .setQualitySelector(QualitySelector.from(Quality.FHD, FallbackStrategy.higherQualityOrLowerThan(Quality.FHD)))
+                    .setQualitySelector(QualitySelector.from(selectedQuality, FallbackStrategy.higherQualityOrLowerThan(selectedQuality)))
                     .build()
                 capture = VideoCapture.withOutput(recorder)
 
