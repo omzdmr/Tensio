@@ -2,7 +2,14 @@ plugins { id("com.android.application"); id("org.jetbrains.kotlin.android") }
 android {
     namespace = "com.omzdmr.catcam"
     compileSdk = 35
-    compileOptions {\n        sourceCompatibility = JavaVersion.VERSION_17\n        targetCompatibility = JavaVersion.VERSION_17\n    }\n    kotlin {\n        jvmToolchain(17)\n    }\n    defaultConfig {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
+    }
+    defaultConfig {
         applicationId = "com.omzdmr.catcam"
         minSdk = 26
         targetSdk = 35
