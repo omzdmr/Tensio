@@ -52,8 +52,8 @@ class MainActivity : ComponentActivity() {
         else statusText.text = "Camera permission is required."
     }
 
-    private fun startCamera() {
-        server = MjpegServer(8080, filesDir, dir).also { it.start() }
+    private fun installWebUi() {\n        val dir = File(filesDir, "web").apply { mkdirs() }\n        val target = File(dir, "index.html")\n        if (!target.exists()) assets.open("index.html").use { input -> target.outputStream().use { output -> input.copyTo(output) } }\n    }\n\n    private fun startCamera() {
+        installWebUi()\n        server = MjpegServer(8080, filesDir, dir).also { it.start() }
         val future = ProcessCameraProvider.getInstance(this)
         future.addListener({
             try {
