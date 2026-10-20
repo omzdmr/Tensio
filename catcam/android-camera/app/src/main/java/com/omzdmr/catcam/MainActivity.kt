@@ -19,7 +19,8 @@ class MainActivity : ComponentActivity() {
     private val cameraPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) startCamera() else statusText.text = "Camera permission is required."
+        if (granted) startCameraService()
+        else statusText.text = "Kamera izni gerekli."
     }
 
     override fun onCreate(state: Bundle?) {
@@ -28,18 +29,32 @@ class MainActivity : ComponentActivity() {
         statusText = findViewById(R.id.statusText)
         urlText = findViewById(R.id.urlText)
 
+        findViewById<Button>(R.id.startButton).setOnClickListener { ensureCameraPermissionAndStart() }
         findViewById<Button>(R.id.batteryButton).setOnClickListener { openBatterySettings() }
+        findViewById<Button>(R.id.stopButton).setOnClickListener { stopCameraService() }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
+        ensureCameraPermissionAndStart()
+    }
+
+    private fun ensureCameraPermissionAndStart() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED) {
+            startCameraService()
         } else {
             cameraPermission.launch(Manifest.permission.CAMERA)
         }
     }
 
-    private fun startCamera() {
-        statusText.text = "Kamera çalışıyor"
+    private fun startCameraService() {
+        val intent = Intent(this, CameraService::class.java).setAction(CameraService.ACTION_START)
+        ContextCompat.startForegroundService(this, intent)
+        statusText.text = "Kamera çalışıyor. Ekranı kapatabilirsin."
         urlText.text = "iPhone: http://${NetworkUtils.localIp()}:8080/"
+    }
+
+    private fun stopCameraService() {
+        stopService(Intent(this, CameraService::class.java))
+        statusText.text = "Kamera durduruldu."
     }
 
     private fun openBatterySettings() {
