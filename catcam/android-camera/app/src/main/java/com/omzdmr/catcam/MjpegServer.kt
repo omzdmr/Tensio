@@ -7,6 +7,9 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.concurrent.thread
 
 class MjpegServer(private val port: Int, private val filesDir: File, private val recordingDir: File) {
@@ -172,6 +175,15 @@ class MjpegServer(private val port: Int, private val filesDir: File, private val
             }
         }
         o.flush()
+    }
+
+    private fun recordingStartMillis(file: File): Long {
+        return try {
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).parse(file.nameWithoutExtension)?.time
+                ?: file.lastModified()
+        } catch (_: Exception) {
+            file.lastModified()
+        }
     }
 
     private fun escapeJson(value: String): String =
