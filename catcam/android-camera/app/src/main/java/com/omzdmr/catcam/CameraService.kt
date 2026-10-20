@@ -62,8 +62,7 @@ class CameraService : LifecycleService() {
         future.addListener({
             try {
                 val provider = future.get()
-                val recorder = Recorder.Builder()
-                    val qualityIndex = getSharedPreferences("catcam", MODE_PRIVATE).getInt("quality", 4)
+                val qualityIndex = getSharedPreferences("catcam", MODE_PRIVATE).getInt("quality", 4)
                 val selectedQuality = when (qualityIndex) {
                     0, 1, 2 -> Quality.SD
                     3 -> Quality.HD
