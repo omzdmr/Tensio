@@ -41,7 +41,7 @@ class CameraService : LifecycleService() {
     private var stopping = false
 
     private val recordingDir by lazy {
-        File(getExternalFilesDir(Environment.DIRECTORY_MOVIES), "catcam").apply { mkdirs() }
+        File(getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir, "catcam").apply { mkdirs() }
     }
 
     override fun onCreate() {
