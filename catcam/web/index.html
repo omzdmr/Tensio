@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0d0c"><title>CatCam</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0d0c"><link rel="manifest" href="./manifest.webmanifest"><title>CatCam</title>
 <style>
 :root{color-scheme:dark;--bg:#090b0a;--panel:#121614;--panel2:#181d1a;--text:#f3f5f3;--muted:#929a95;--accent:#a8d5b5;--line:#262d29}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#1b2920 0,#090b0a 45%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
@@ -21,5 +21,5 @@ function snapshot(){window.open(base.replace(/\/$/,'')+'/snapshot.jpg','_blank')
 function fmtBytes(n){if(n<1024*1024)return Math.round(n/1024)+' KB';if(n<1024*1024*1024)return (n/1024/1024).toFixed(1)+' MB';return (n/1024/1024/1024).toFixed(2)+' GB'}
 function fmtTime(ms){return new Date(ms).toLocaleString()}
 async function load(){try{const r=await fetch(base.replace(/\/$/,'')+'/api/recordings',{cache:'no-store'});const items=await r.json();const el=document.querySelector('#recordings');el.innerHTML=items.length?items.map(x=>'<div class="rec"><span>'+fmtTime(x.modified)+'</span><small>'+fmtBytes(x.size)+' · <a class="btn" style="padding:7px 9px;text-decoration:none" href="'+base.replace(/\/$/,'')+x.url+'" target="_blank">Play</a></small></div>').join(''):'<div class="muted">No recordings yet.</div>'}catch(e){document.querySelector('#recordings').innerHTML='<div class="muted">Camera API unavailable.</div>'}}
-load();setInterval(load,15000);
+load();setInterval(load,15000);if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script></body></html>
