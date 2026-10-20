@@ -35,11 +35,29 @@
         android:id="@+id/urlText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#929A95"
+        android:textColor="#A8D5B5"
         android:textIsSelectable="true"
         android:textSize="13sp"
+        android:lineSpacingExtra="3dp"
         android:paddingTop="8dp"
         android:paddingBottom="18dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dışarıdan izleme"
+        android:textColor="#A8D5B5"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Redmi ve iPhone’a Tailscale kurup aynı hesapla giriş yap. Böylece aynı Wi-Fi’da olmasanız bile CatCam’e bağlanabilirsin. Tailscale adresi yukarıda görünür."
+        android:textColor="#929A95"
+        android:textSize="12sp"
+        android:paddingBottom="14dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -72,7 +90,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Bu ayarı aç. Redmi'nin CatCam'i uykuya alıp bağlantıyı kesmesini engellemeye yardımcı olur."
+        android:text="Bu ayarı aç. Redmi’nin CatCam’i uykuya alıp bağlantıyı kesmesini engellemeye yardımcı olur."
         android:textColor="#929A95"
         android:textSize="12sp"
         android:paddingTop="5dp"
