@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 class MainActivity : ComponentActivity() {
     private lateinit var statusText: TextView
     private lateinit var urlText: TextView
+    private var initializingQuality = true
 
     private val cameraPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -41,32 +42,42 @@ class MainActivity : ComponentActivity() {
         spinner.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                getSharedPreferences("catcam", MODE_PRIVATE).edit().putInt("quality", position).apply()
+                val prefs = getSharedPreferences("catcam", MODE_PRIVATE)
+                val old = prefs.getInt("quality", 4)
+                prefs.edit().putInt("quality", position).apply()
+                if (!initializingQuality && old != position &&
+                    ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    restartCameraService()
+                }
+                initializingQuality = false
             }
         })
 
         findViewById<Button>(R.id.startButton).setOnClickListener { ensureCameraPermissionAndStart() }
         findViewById<Button>(R.id.batteryButton).setOnClickListener { openBatterySettings() }
         findViewById<Button>(R.id.stopButton).setOnClickListener { stopCameraService() }
-
         ensureCameraPermissionAndStart()
     }
 
     private fun ensureCameraPermissionAndStart() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            startCameraService()
-        } else {
-            cameraPermission.launch(Manifest.permission.CAMERA)
-        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCameraService()
+        else cameraPermission.launch(Manifest.permission.CAMERA)
     }
 
     private fun startCameraService() {
         val intent = Intent(this, CameraService::class.java).setAction(CameraService.ACTION_START)
         ContextCompat.startForegroundService(this, intent)
         statusText.text = "Kamera çalışıyor. Ekranı kapatabilirsin."
-        val lan = "http://${NetworkUtils.localIp()}:8080/"
+        val lan = "http://" + NetworkUtils.localIp() + ":8080/"
         val tail = NetworkUtils.tailscaleIp()
-        urlText.text = if (tail != null) "Aynı Wi-Fi: $lan\nDışarıdan (Tailscale): http://$tail:8080/" else "Aynı Wi-Fi: $lan\nDışarıdan: Tailscale’i Redmi’ye ve iPhone’a kur. Sonra Tailscale IP burada görünecek."
+        urlText.text = if (tail != null) "Aynı Wi-Fi: " + lan + "\nDışarıdan (Tailscale): http://" + tail + ":8080/"
+        else "Aynı Wi-Fi: " + lan + "\nDışarıdan: Tailscale’i Redmi’ye ve iPhone’a kur. Sonra Tailscale IP burada görünecek."
+    }
+
+    private fun restartCameraService() {
+        statusText.text = "Kalite değiştiriliyor…"
+        stopService(Intent(this, CameraService::class.java))
+        window.decorView.postDelayed({ startCameraService() }, 400)
     }
 
     private fun stopCameraService() {
