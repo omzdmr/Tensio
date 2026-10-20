@@ -1,146 +1,57 @@
 package com.omzdmr.catcam
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
+import android.provider.Settings
+import android.widget.Button
 import android.widget.TextView
-import android.widget.Spinner
-import android.widget.ArrayAdapter
-import android.view.ViewGroup
 import androidx.activity.ComponentActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Quality
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.FileOutputOptions
-import androidx.camera.video.FallbackStrategy
-import androidx.camera.video.QualitySelector
-import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
-import androidx.camera.video.VideoCapture
-import androidx.camera.video.VideoRecordEvent
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     private lateinit var statusText: TextView
     private lateinit var urlText: TextView
-    private var server: MjpegServer? = null
-    private var capture: VideoCapture<Recorder>? = null
-    private var recording: Recording? = null
-    private val executor = Executors.newSingleThreadExecutor()
-    private var stopping = false
-    private var selectedQuality = Quality.FHD
-    private var selectedLiveWidth = 1920
-    private var selectedLiveHeight = 1080
-    private val dir by lazy { File(getExternalFilesDir(Environment.DIRECTORY_MOVIES), "catcam").apply { mkdirs() } }
+
+    private val cameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) startCamera() else statusText.text = "Camera permission is required."
+    }
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_main)
         statusText = findViewById(R.id.statusText)
         urlText = findViewById(R.id.urlText)
-        setupQualitySelector()
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 10)
-        } else startCamera()
-    }
+        findViewById<Button>(R.id.batteryButton).setOnClickListener { openBatterySettings() }
 
-    override fun onRequestPermissionsResult(code: Int, permissions: Array<out String>, results: IntArray) {
-        super.onRequestPermissionsResult(code, permissions, results)
-        if (code == 10 && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
-        else statusText.text = "Camera permission is required."
-    }
-
-    private fun installWebUi() {\n        val dir = File(filesDir, "web").apply { mkdirs() }\n        val target = File(dir, "index.html")\n        if (!target.exists()) assets.open("index.html").use { input -> target.outputStream().use { output -> input.copyTo(output) } }\n    }\n\n    private fun setupQualitySelector() {
-        val spinner = Spinner(this)
-        val options = listOf("240p (Low)", "360p (Low)", "480p (SD)", "720p (HD)", "1080p (FHD)", "2160p (4K)")
-        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, options)
-        spinner.setSelection(4)
-        spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                when (position) {
-                    0 -> { selectedQuality = Quality.SD; selectedLiveWidth = 426; selectedLiveHeight = 240 }
-                    1 -> { selectedQuality = Quality.SD; selectedLiveWidth = 640; selectedLiveHeight = 360 }
-                    2 -> { selectedQuality = Quality.SD; selectedLiveWidth = 854; selectedLiveHeight = 480 }
-                    3 -> { selectedQuality = Quality.HD; selectedLiveWidth = 1280; selectedLiveHeight = 720 }
-                    4 -> { selectedQuality = Quality.FHD; selectedLiveWidth = 1920; selectedLiveHeight = 1080 }
-                    else -> { selectedQuality = Quality.UHD; selectedLiveWidth = 3840; selectedLiveHeight = 2160 }
-                }
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCamera()
+        } else {
+            cameraPermission.launch(Manifest.permission.CAMERA)
         }
-        val root = findViewById<ViewGroup>(android.R.id.content)
-        root.addView(spinner, ViewGroup.LayoutParams(-1, -2))
     }
 
     private fun startCamera() {
-        installWebUi()\n        server = MjpegServer(8080, filesDir, dir).also { it.start() }
-        val future = ProcessCameraProvider.getInstance(this)
-        future.addListener({
-            try {
-                val provider = future.get()
-                val recorder = Recorder.Builder()
-                    .setQualitySelector(QualitySelector.from(selectedQuality, FallbackStrategy.higherQualityOrLowerThan(selectedQuality)))
-                    .build()
-                capture = VideoCapture.withOutput(recorder)
-
-                val analysis = ImageAnalysis.Builder()
-                    .setTargetResolution(android.util.Size(selectedLiveWidth, selectedLiveHeight))
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
-                    .build()
-                analysis.setAnalyzer(executor) { image ->
-                    try { server?.updateFrame(YuvJpegAnalyzer.encode(image)) } finally { image.close() }
-                }
-
-                provider.unbindAll()
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, capture, analysis)
-                startSegment()
-                statusText.text = "Camera + rolling recording running"
-                urlText.text = "Open http://" + NetworkUtils.localIp() + ":8080/ on the iPhone"
-            } catch (e: Exception) {
-                statusText.text = "Camera failed: " + e.message
-            }
-        }, ContextCompat.getMainExecutor(this))
+        statusText.text = "Kamera çalışıyor"
+        urlText.text = "iPhone: http://${NetworkUtils.localIp()}:8080/"
     }
 
-    private fun startSegment() {
-        if (stopping) return
-        val c = capture ?: return
-        cleanup()
-        val name = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + ".mp4"
-        val file = File(dir, name)
-        val output = FileOutputOptions.Builder(file).build()
-        recording = c.output.prepareRecording(this, output).start(ContextCompat.getMainExecutor(this)) { event ->
-            if (event is VideoRecordEvent.Finalize) {
-                recording = null
-                if (!stopping && !event.hasError()) startSegment()
-            }
+    private fun openBatterySettings() {
+        try {
+            startActivity(
+                Intent(
+                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:$packageName")
+                )
+            )
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
-        android.os.Handler(mainLooper).postDelayed({ if (!stopping) recording?.stop() }, 5 * 60 * 1000L)
-    }
-
-    private fun cleanup() {
-        val cutoff = System.currentTimeMillis() - 48 * 60 * 60 * 1000L
-        dir.listFiles { f -> f.extension.lowercase(Locale.US) == "mp4" }?.forEach {
-            if (it.lastModified() < cutoff) it.delete()
-        }
-    }
-
-    override fun onDestroy() {
-        stopping = true
-        recording?.stop()
-        recording = null
-        server?.stop()
-        executor.shutdown()
-        super.onDestroy()
     }
 }
